@@ -34,23 +34,22 @@ A solução foi desenvolvida utilizando a arquitetura Medallion, que separa os d
 
 O repositório está organizado de forma modular para separar as diferentes responsabilidades do pipeline, seguindo as melhores práticas de engenharia de software.
 
-/
-├── data/                   # Diretório dos dados (ignorado pelo .gitignore)
-│   ├── bronze/             # Camada Bronze: Armazena os dados brutos e inalterados (HTMLs).
-│   ├── silver/             # Camada Silver: Armazena os dados limpos e consolidados (Parquet).
-│   └── gold/               # Camada Gold: Armazena os dados agregados e prontos para análise (Parquet).
-│
-├── src/                    # Diretório principal do código-fonte da aplicação.
-│   ├── common/             # Módulos com funções utilitárias reutilizáveis (ex: baixar páginas).
-│   ├── config/             # Módulos de configuração, sem lógica de negócio (ex: paths, URLs, dicionários).
-│   ├── extract/            # Módulos responsáveis pela extração (scraping) dos dados de cada fonte.
-│   ├── transform/          # Módulos responsáveis pela transformação e agregação (lógica das camadas Silver e Gold).
-│   └── validation/         # Módulos para validação de dados e esquemas (ex: schemas Pandera).
-│
-├── .gitignore              # Arquivo que define quais arquivos/pastas não devem ser enviados ao Github.
-├── pipeline.py             # Script principal (entrypoint) que orquestra a execução de todo o pipeline.
-├── requirements.txt        # Lista das dependências do projeto para fácil instalação.
-└── README.md               # Documentação do projeto (este arquivo).
+* `data/`: Diretório que armazena os dados gerados pelo pipeline (ignorado pelo `.gitignore`).
+    * `bronze/`: **Camada Bronze** - Armazena os dados brutos e inalterados, extraídos diretamente das fontes (arquivos HTML).
+    * `silver/`: **Camada Silver** - Contém os dados após a primeira etapa de limpeza e consolidação (arquivo Parquet).
+    * `gold/`: **Camada Gold** - Guarda os dados finais, agregados e prontos para análise de negócio (arquivo Parquet).
+
+* `src/`: Diretório principal que contém todo o código-fonte da aplicação.
+    * `common/`: Módulos com funções utilitárias reutilizadas em várias partes do projeto (ex: `fetch_page`).
+    * `config/`: Arquivos de configuração, sem lógica de negócio (ex: `settings.py` para caminhos e `mappings.py` para dicionários).
+    * `extract/`: Módulos responsáveis pela extração (scraping) dos dados de cada fonte. Cada arquivo corresponde a um porto.
+    * `transform/`: Módulos responsáveis pela transformação dos dados (lógica principal das camadas Silver e Gold).
+    * `validation/`: Scripts e esquemas para validação da qualidade e integridade dos dados (ex: esquemas `Pandera`).
+
+* `.gitignore`: Arquivo que define quais arquivos e pastas devem ser ignorados pelo Git.
+* `pipeline.py`: Script principal (*entrypoint*) que orquestra a execução de todo o pipeline em sequência.
+* `requirements.txt`: Lista das dependências Python do projeto, permitindo a fácil recriação do ambiente.
+* `README.md`: Documentação completa do projeto (este arquivo).
 
 ## 🤔 Hipóteses e Decisões de Projeto
 * **Resiliência a Falhas de SSL:** Foi implementado um fallback para tentativas de conexão sem verificação de certificado, pois foi detectado um problema de SSL em uma das fontes.

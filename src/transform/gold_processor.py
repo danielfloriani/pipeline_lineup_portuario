@@ -1,60 +1,72 @@
-# src/transform/gold_processor.py (versão final e corrigida)
+# src/transform/gold_processor.py (versão final com chave robusta)
 
 import pandas as pd
 from src.config import settings
 from src.config import mappings
 
 def _consolidate_duplicate_columns(df: pd.DataFrame, col_name: str) -> pd.DataFrame:
-    """
-    Função auxiliar para checar e consolidar colunas duplicadas.
-    """
-    # Checa se a seleção da coluna resulta em um DataFrame (indicando duplicatas)
+    """Função auxiliar para checar e consolidar colunas duplicadas."""
     if isinstance(df.get(col_name), pd.DataFrame):
         print(f"Detectadas colunas '{col_name}' duplicadas. Consolidando...")
-        # Cria a nova coluna consolidada
         consolidated_col = df[col_name].bfill(axis=1).iloc[:, 0]
-        # Remove as colunas duplicadas antigas
         df = df.drop(columns=col_name)
-        # Adiciona a coluna consolidada de volta
         df[col_name] = consolidated_col
     return df
 
+# Em src/transform/gold_processor.py
+
 def _clean_and_standardize_data(df: pd.DataFrame) -> pd.DataFrame:
     """
-    Pega o DataFrame consolidado, aplica as regras de negócio para limpar,
-    padronizar colunas e converter tipos, preparando para a agregação.
+    Pega o DataFrame consolidado, DEDUPLICA com chave robusta, limpa, padroniza e converte tipos.
     """
     print("Iniciando limpeza e padronização final dos dados...")
     
-    # 1. Renomeia todas as colunas de uma vez
+    # 1. Renomeia todas as colunas
     df = df.rename(columns=mappings.RAW_TO_STANDARD_COLUMN_MAP)
     
-    # 2. Consolida colunas que podem ter ficado duplicadas após a renomeação
+    if 'data_extracao' in df.columns:
+        df['data_extracao'] = pd.to_datetime(df['data_extracao'])
+
+    # 2. Consolida colunas duplicadas
     df = _consolidate_duplicate_columns(df, 'navio')
     df = _consolidate_duplicate_columns(df, 'produto')
     df = _consolidate_duplicate_columns(df, 'sentido')
     df = _consolidate_duplicate_columns(df, 'tonelagem')
-    # Adicione outras que possam ser duplicadas...
+    df = _consolidate_duplicate_columns(df, 'imo')
+    df = _consolidate_duplicate_columns(df, 'viagem')
+    df = _consolidate_duplicate_columns(df, 'data_prevista')
 
-    # 3. Garante que o DataFrame final tenha apenas as colunas do nosso esquema padrão
+    # 3. Deduplicação
+    print(f"Registros antes da deduplicação: {len(df)}")
+    df = df.sort_values('data_extracao', ascending=True)
+    unique_key = ['imo', 'viagem', 'data_prevista', 'produto']
+    key_cols_exist = [col for col in unique_key if col in df.columns]
+    df = df.drop_duplicates(subset=key_cols_exist, keep='last')
+    print(f"Registros após a deduplicação: {len(df)}")
+
+    # 4. Garante o esquema padrão
     standard_cols = ['navio', 'data_prevista', 'produto', 'sentido', 'tonelagem', 'porto']
     df = df[[col for col in standard_cols if col in df.columns]]
 
-    # 4. Conversão de tipos
-    df['tonelagem'] = pd.to_numeric(df['tonelagem'], errors='coerce')
-    df['data_prevista'] = pd.to_datetime(df['data_prevista'], format='%d/%m/%Y', errors='coerce')
+    # --- CORREÇÃO FINAL NA LÓGICA DE LIMPEZA ---
+    # Converte 'tonelagem' de forma robusta, limpando o texto antes
+    # Remove pontos de milhar, troca vírgula por ponto, e extrai apenas os números
+    df['tonelagem'] = df['tonelagem'].astype(str).str.replace('.', '', regex=False).str.replace(',', '.').str.extract(r'(\d+\.?\d*)').astype(float)
+    
+    # Converte 'data_prevista' de forma flexível, aceitando datas com ou sem horas
+    df['data_prevista'] = pd.to_datetime(df['data_prevista'], dayfirst=True, errors='coerce')
+    # --- FIM DA CORREÇÃO ---
 
-    # 5. Padronização de valores
+    # 6. Padronização de valores
     if hasattr(mappings, 'SENTIDO_MAP'):
         df['sentido'] = df['sentido'].astype(str).str.upper().map(mappings.SENTIDO_MAP).fillna(df['sentido'])
     
-    # 6. Remove linhas com dados essenciais nulos
-    df = df.dropna(subset=['data_prevista', 'tonelagem', 'produto', 'porto'])
+    # 7. Remove linhas com dados essenciais nulos (AGORA DEVE FUNCIONAR)
+    df.dropna(subset=['data_prevista', 'tonelagem', 'produto', 'porto'], inplace=True)
     
     print(f"Limpeza concluída. DataFrame padronizado com {len(df)} registros válidos.")
     return df
-
-# A função process_to_gold() continua exatamente a mesma de antes.
+    
 def process_to_gold():
     """
     Orquestra a criação da Camada Ouro: lê a Prata, limpa, agrega e salva.

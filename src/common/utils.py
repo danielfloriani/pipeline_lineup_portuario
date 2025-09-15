@@ -29,7 +29,6 @@ def fetch_page(url: str) -> str | None:
 def save_raw_html(html_content: str, port_name: str):
     """
     Salva o conteúdo HTML bruto na camada Bronze.
-    Este é o dado mais puro, garantindo rastreabilidade.
     """
     if not html_content:
         print(f"Nenhum conteúdo HTML para salvar para o porto {port_name}.")

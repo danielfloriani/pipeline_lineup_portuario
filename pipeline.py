@@ -8,18 +8,16 @@ import re
 from src.config import settings
 from src.common import utils
 from src.extract import extract_santos, extract_paranagua
-from src.transform import gold_processor # <--- Importe o processador Ouro
+from src.transform import gold_processor
 def run_bronze():
     """
     Camada Bronze: Coleta os dados brutos (HTML) das fontes e salva localmente.
     """
     print("--- INICIANDO CAMADA BRONZE ---")
-    # Busca e salva Santos
     santos_html = utils.fetch_page(settings.URL_SANTOS)
     if santos_html:
         utils.save_raw_html(santos_html, "santos")
 
-    # Busca e salva Paranaguá
     paranagua_html = utils.fetch_page(settings.URL_PARANAGUA)
     if paranagua_html:
         utils.save_raw_html(paranagua_html, "paranagua")
@@ -56,8 +54,6 @@ def run_silver():
 
     processed_dfs = []
     for file_path in latest_files_to_process:
-        # ... (o resto da lógica de ler o arquivo e o parser continua a mesma) ...
-        # A lógica de adicionar a 'data_extracao' ainda é útil para rastreabilidade
         match = re.search(r'(\d{4}-\d{2}-\d{2})', str(file_path.name))
         if not match: continue
         data_extracao = match.group(1)
@@ -86,7 +82,9 @@ def run_silver():
     print("--- FINALIZADA CAMADA PRATA ---\n")
     
 def run_gold():
-    # Agora a função chama a lógica real
+    """
+    Executa o processamento da Camada Ouro.
+    """
     gold_processor.process_to_gold()
 
 

@@ -48,7 +48,9 @@ def process_to_gold() -> None:
     daily_volumes = df.groupby([
         df['data_prevista'].dt.floor('D'),
         'porto', 'produto', 'sentido'
-    ]).agg(volume_total_ton=('tonelagem', 'sum')).reset_index()
+    ]).agg(volume_total_ton=('tonelagem', 'sum'),
+    lista_imo=('imo', lambda x: ', '.join(x.astype(str).unique()))
+    ).reset_index()
 
     daily_volumes = daily_volumes.rename(columns={'data_prevista': 'data'})
 

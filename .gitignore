@@ -1,0 +1,64 @@
+# Arquivo .gitignore para o projeto de pipeline de dados
+
+# -------------------------------------------------------------------
+# ARQUIVOS E PASTAS ESPECÍFICOS DO PROJETO
+# -------------------------------------------------------------------
+
+# Ignorar a pasta de dados inteira.
+# Os dados são um resultado (artefato) do pipeline, não parte do código-fonte.
+/data/
+
+# Ignorar arquivos de ambiente que podem conter senhas ou segredos.
+.env
+
+# -------------------------------------------------------------------
+# ARQUIVOS DE AMBIENTE VIRTUAL PYTHON
+# -------------------------------------------------------------------
+
+# Nomes comuns para pastas de ambiente virtual
+venv/
+.venv/
+env/
+.env/
+
+# Outros arquivos relacionados a ambientes
+pyvenv.cfg
+pip-selfcheck.json
+
+# -------------------------------------------------------------------
+# ARQUIVOS GERADOS PELO PYTHON (BYTECODE E CACHES)
+# -------------------------------------------------------------------
+
+# Pastas de cache
+__pycache__/
+.pytest_cache/
+.mypy_cache/
+
+# Arquivos de bytecode compilado
+*.py[cod]
+
+# -------------------------------------------------------------------
+# ARQUIVOS DE CONFIGURAÇÃO DE EDITORES E IDEs
+# -------------------------------------------------------------------
+
+# Visual Studio Code
+.vscode/
+
+# PyCharm / JetBrains
+.idea/
+
+# -------------------------------------------------------------------
+# ARQUIVOS DE LOG E BANCOS DE DADOS LOCAIS
+# -------------------------------------------------------------------
+
+*.log
+*.db
+*.sqlite3
+
+# -------------------------------------------------------------------
+# PASTAS DE BUILD E DISTRIBUIÇÃO
+# -------------------------------------------------------------------
+
+build/
+dist/
+*.egg-info/
